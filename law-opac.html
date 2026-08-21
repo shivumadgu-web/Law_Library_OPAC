@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MIT-WPU Law Library OPAC</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            text-align: center;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .logo {
+            width: 280px;
+            height: auto;
+        }
+
+        .header h2 {
+            margin: 10px 0 5px;
+        }
+
+        .header h3 {
+            margin: 0;
+            color: #1f4e79;
+        }
+
+        .opac-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .search-box {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .search-box h1 {
+            margin-top: 0;
+            color: #1f4e79;
+        }
+
+        .search-input {
+            width: 70%;
+            padding: 14px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .search-button {
+            padding: 14px 22px;
+            margin-left: 8px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #1f4e79;
+            color: white;
+        }
+
+        .search-button:hover {
+            opacity: 0.9;
+        }
+
+        .search-help {
+            margin-top: 12px;
+            color: #666;
+        }
+
+        .book-count {
+            margin-top: 30px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #results {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .result-count {
+            margin-bottom: 15px;
+            font-size: 17px;
+            font-weight: bold;
+            color: #1f4e79;
+        }
+
+        .book-result {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #1f4e79;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .book-result h3 {
+            margin: 0 0 12px;
+            color: #1f4e79;
+        }
+
+        .book-result p {
+            margin: 6px 0;
+            color: #444;
+        }
+
+        .details-button {
+            margin-top: 12px;
+            padding: 9px 16px;
+            border: none;
+            border-radius: 5px;
+            background: #1f4e79;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .details-button:hover {
+            opacity: 0.9;
+        }
+
+        /* Suggestions */
+        #suggestions {
+            margin: 8px auto 0;
+            width: 70%;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            text-align: left;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+            display: none;
+            position: relative;
+            z-index: 10;
+        }
+
+        .suggestion-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item:hover {
+            background: #f5f5f5;
+        }
+
+        .suggestion-item small {
+            color: #777;
+        }
+
+        /* Full details */
+        .book-details {
+            display: none;
+            margin-top: 15px;
+            padding: 18px;
+            background: #f8fafc;
+            border: 1px solid #ddd;
+            border-radius: 7px;
+        }
+
+        .book-details h4 {
+            margin: 0 0 15px;
+            color: #1f4e79;
+            font-size: 18px;
+        }
+
+        .detail-row {
+            display: flex;
+            padding: 7px 0;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            width: 150px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .detail-value {
+            flex: 1;
+            color: #333;
+        }
+
+        .close-details {
+            margin-top: 15px;
+            padding: 8px 15px;
+            border: 1px solid #1f4e79;
+            border-radius: 5px;
+            background: white;
+            color: #1f4e79;
+            cursor: pointer;
+        }
+
+        @media (max-width: 700px) {
+            .search-input {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .search-button {
+                margin-left: 0;
+            }
+
+            #suggestions {
+                width: 100%;
+            }
+
+            .detail-row {
+                display: block;
+            }
+
+            .detail-label {
+                width: auto;
+                margin-bottom: 3px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+
+        <img src="Images/logo.png"
+             alt="MIT-WPU Logo"
+             class="logo">
+
+        <h2>Knowledge Resource Centre</h2>
+        <h3>Law Library</h3>
+
+    </div>
+
+    <div class="opac-container">
+
+        <div class="search-box">
+
+            <h1>📚 Law Library OPAC</h1>
+
+            <input
+                type="text"
+                class="search-input"
+                placeholder="Search by Acc. No., Title, Author or ISBN">
+
+            <button class="search-button">
+                Search
+            </button>
+
+            <div class="search-help">
+                Search the Law Library collection
+            </div>
+
+            <div id="suggestions"></div>
+
+        </div>
+
+        <div class="book-count">
+            Law Library Collection: 5,849+ Books
+        </div>
+
+        <div id="results"></div>
+
+    </div>
+
+<script>
+
+const searchInput = document.querySelector(".search-input");
+const searchButton = document.querySelector(".search-button");
+const results = document.getElementById("results");
+const suggestions = document.getElementById("suggestions");
+
+let books = [];
+
+
+/* Load books.json */
+
+fetch("books.json")
+    .then(response => response.json())
+    .then(data => {
+        books = data;
+    })
+    .catch(error => {
+        console.error("Error loading book data:", error);
+    });
+
+
+/* Google-style suggestions */
+
+function showSuggestions() {
+
+    const query = searchInput.value.trim().toLowerCase();
+
+    if (query.length < 2) {
+        suggestions.innerHTML = "";
+        suggestions.style.display = "none";
+        return;
+    }
+
+    const suggestionBooks = books.filter(book =>
+
+        String(book.title || "").toLowerCase().includes(query) ||
+        String(book.author || "").toLowerCase().includes(query)
+
+    ).slice(0, 8);
+
+
+    if (suggestionBooks.length === 0) {
+        suggestions.innerHTML = "";
+        suggestions.style.display = "none";
+        return;
+    }
+
+
+    suggestions.innerHTML = suggestionBooks.map(book => `
+
+        <div class="suggestion-item"
+             onclick="selectSuggestion(${JSON.stringify(book.title || "")})">
+
+            <strong>${book.title || "Title not available"}</strong>
+
+            <br>
+
+            <small>
+                Author: ${book.author || "Author not available"}
+            </small>
+
+        </div>
+
+    `).join("");
+
+
+    suggestions.style.display = "block";
+}
+
+
+/* Select suggestion */
+
+function selectSuggestion(title) {
+
+    searchInput.value = title;
+
+    suggestions.innerHTML = "";
+
+    suggestions.style.display = "none";
+
+    searchBooks();
+}
+
+
+/* Search books */
+
+function searchBooks() {
+
+    const query = searchInput.value.trim().toLowerCase();
+
+    if (query === "") {
+
+        results.innerHTML =
+            "<p>Please enter a search term.</p>";
+
+        return;
+    }
+
+
+    const matches = books.filter(book =>
+
+        String(book.accNo || "").toLowerCase().includes(query) ||
+
+        String(book.author || "").toLowerCase().includes(query) ||
+
+        String(book.title || "").toLowerCase().includes(query) ||
+
+        String(book.isbn || "").toLowerCase().includes(query)
+
+    );
+
+
+    if (matches.length === 0) {
+
+        results.innerHTML =
+            "<p>No books found.</p>";
+
+        return;
+    }
+
+
+    results.innerHTML = `
+
+        <div class="result-count">
+            ${matches.length} book(s) found
+        </div>
+
+    ` + matches.map((book, index) => `
+
+        <div class="book-result">
+
+            <h3>
+                ${book.title || "Title not available"}
+            </h3>
+
+            <p>
+                <strong>Author:</strong>
+                ${book.author || "Not available"}
+            </p>
+
+            <p>
+                <strong>Acc. No.:</strong>
+                ${book.accNo || "Not available"}
+            </p>
+
+            <p>
+                <strong>ISBN:</strong>
+                ${book.isbn || "Not available"}
+            </p>
+
+
+            <button
+                class="details-button"
+                onclick="toggleDetails(${index})">
+
+                View Full Details
+
+            </button>
+
+
+            <div
+                class="book-details"
+                id="details-${index}">
+
+                <h4>
+                    Complete Book Details
+                </h4>
+
+
+                <div class="detail-row">
+                    <div class="detail-label">Acc. No.</div>
+                    <div class="detail-value">
+                        ${book.accNo || "Not available"}
+                    </div>
+                </div>
+
+
+                <div class="detail-row">
+                    <div class="detail-label">Author</div>
+                    <div class="detail-value">
+                        ${book.author || "Not available"}
+                    </div>
+                </div>
+
+
+                <div class="detail-row">
+                    <div class="detail-label">Title</div>
+                    <div class="detail-value">
+                        ${book.title || "Not available"}
+                    </div>
+                </div>
+
+
+                <div class="detail-row">
+                    <div class="detail-label">Volume</div>
+                    <div class="detail-value">
+                        ${book.volume || "Not available"}
+                    </div>
+                </div>
+
+
+                <div class="detail-row">
+                    <div class="detail-label">Edition</div>
+                    <div class="detail-value">
+                        ${book.edition || "Not available"}
+                    </div>
+                </div>
+
+
+                <div class="detail-row">
+                    <div class="detail-label">Publisher</div>
+                    <div class="detail-value">
+                        ${book.publisher || "Not available"}
+                    </div>
+                </div>
+
+
+                <div class="detail-row">
+                    <div class="detail-label">Year</div>
+                    <div class="detail-value">
+                        ${book.year || "Not available"}
+                    </div>
+                </div>
+
+
+                <div class="detail-row">
+                    <div class="detail-label">Pages</div>
+                    <div class="detail-value">
+                        ${book.pages || "Not available"}
+                    </div>
+                </div>
+
+
+                <div class="detail-row">
+                    <div class="detail-label">Binding</div>
+                    <div class="detail-value">
+                        ${book.binding || "Not available"}
+                    </div>
+                </div>
+
+
+                <div class="detail-row">
+                    <div class="detail-label">Class</div>
+                    <div class="detail-value">
+                        ${book.class || "Not available"}
+                    </div>
+                </div>
+
+
+                <div class="detail-row">
+                    <div class="detail-label">Rate / Price</div>
+                    <div class="detail-value">
+                        ${book.rate || "Not available"}
+                    </div>
+                </div>
+
+
+                <div class="detail-row">
+                    <div class="detail-label">ISBN</div>
+                    <div class="detail-value">
+                        ${book.isbn || "Not available"}
+                    </div>
+                </div>
+
+
+                <button
+                    class="close-details"
+                    onclick="toggleDetails(${index})">
+
+                    Close Details
+
+                </button>
+
+            </div>
+
+        </div>
+
+    `).join("");
+}
+
+
+/* Open / close full details */
+
+function toggleDetails(index) {
+
+    const details =
+        document.getElementById(`details-${index}`);
+
+    if (details.style.display === "block") {
+
+        details.style.display = "none";
+
+    } else {
+
+        details.style.display = "block";
+
+    }
+}
+
+
+/* Live search */
+
+searchInput.addEventListener(
+    "input",
+    searchBooks
+);
+
+
+/* Live suggestions */
+
+searchInput.addEventListener(
+    "input",
+    showSuggestions
+);
+
+
+/* Search button */
+
+searchButton.addEventListener(
+    "click",
+    searchBooks
+);
+
+
+/* Enter key */
+
+searchInput.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (event.key === "Enter") {
+
+            searchBooks();
+
+            suggestions.innerHTML = "";
+
+            suggestions.style.display = "none";
+
+        }
+
+    }
+);
+
+
+/* Close suggestions when clicking outside */
+
+document.addEventListener(
+    "click",
+    function(event) {
+
+        if (
+            !event.target.closest(".search-input") &&
+            !event.target.closest("#suggestions")
+        ) {
+
+            suggestions.innerHTML = "";
+
+            suggestions.style.display = "none";
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+</html>
